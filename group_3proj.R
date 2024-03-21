@@ -1,7 +1,8 @@
 options(scipen=999, digits=4) # avoid scientific display, keep 4 digits in display
 rm(list=ls()) # clear Environment
-setwd("/Users/edgr/Library/Mobile Documents/com~apple~CloudDocs/SMU tings/current/statprog/statprog proj")
+setwd("/Users/edgr/Library/Mobile Documents/com~apple~CloudDocs/SMU tings/current/statprog/statprog proj/R_regression_model/R_regression_model/data")
 
+##================SCRIPT START===============##
 #===========PACKAGES & DEPENDENCIES===========#
 install.packages('caret', dependencies = TRUE)
 install.packages("corrplot")
@@ -14,13 +15,24 @@ library(rpart)
 library(glmnet)
 library(corrplot)
 base <- read_csv("teamproject_final.csv")
-#===========PRELIMNARY CLEANING==============#
-rebase <- base %>% filter(!is.na(at)) #remove rows where total assets is NA
-rebase1 <- rebase %>% filter(!is.na(ceq)) #remove rows where equity is NA
-rebase2 <- rebase %>% filter(!is.na(lt)) #remove rows where total liabilities is NA
-View(rebase2)
 
-#===========ADDING VARIABLES=================#
+#===========PRELIMNARY CLEANING==============#
+#Overarching assumption: We don't want outlier companies, or irregular companies influencing the model
+#!!need to elaborate more on assumptions!! 
+#assumption: no company can have 0 total assets
+base_clean <- base %>% filter(!is.na(at)) #remove rows where total assets is NA
+#assumption: no company can have 0 equity
+base_clean1 <- base_clean %>% filter(!is.na(ceq)) #remove rows where equity is NA
+#assumption:
+base_clean2 <- base_clean1 %>% filter(!is.na(lt)) #remove rows where total liabilities is NA
+#assumption:
+base_clean3 <- base_clean2 %>% mutate(clean_act = ifelse(is.na(act), che + rect + invt ,act)) 
+#assumption:
+base_clean4 <- base_clean3 %>% filter(!is.na(sale))
+#assumption: 
+base_clean5 <- 
+
+#===========ADDING VARIABLES==================#
 #adding gross profit variable 
 base1 <- base %>%
   arrange(cid, fyear) %>%
@@ -36,13 +48,15 @@ baseyourmom <- basetest %>% filter(is.na(lt))
 View(basetest)
 View(baseyourmom)
 
-#================CLEANING DATA================#
+#================CLEANING DATA=================#
 #dltt data cleaning 
 
 
 base_final_cleaned = na.omit(base_final)
 
 
-#=======REMOVING UNNECESSARY COLUMNS=========#
+#=======REMOVING UNNECESSARY COLUMNS===========#
 base4 <- select(base3, c(datadate, cid, fyear, fyr, mob, gpm, dltt_dummy, n_aef, ghg))
 View(base4)
+
+##==================SCRIPT END================##
