@@ -1,7 +1,7 @@
 setwd("/Users/edgr/Library/Mobile Documents/com~apple~CloudDocs/SMU tings/current/statprog/statprog proj/R_regression_model/R_regression_model/data") #set this to wherever your data is
 
-##================SCRIPT START===============##
-#===========PACKAGES & DEPENDENCIES===========#
+##=====================SCRIPT START===================##
+#================PACKAGES & DEPENDENCIES===============#
 install.packages("corrplot")
 install.packages("caTools") 
 install.packages("ROCR")	 
@@ -17,7 +17,7 @@ base <- read_csv("teamproject_final.csv")
 #Overarching assumption: something something
 base <- base %>% filter(!FFI12_desc == "Money")
 
-#==================PRELIMINARY CLEANING================#
+#=================PRELIMINARY CLEANING=================#
 #Overarching assumption: We don't want outlier companies, or irregular companies influencing the model
 #Removing all NA and negative values from Dataset
 na_rows <- which(is.na(base$datadate)|is.na(base$fyear)|is.na(base$fyr)|is.na(base$act)|is.na(base$at)|is.na(base$capx)
@@ -39,7 +39,7 @@ summary(base1)
 #Final cleaned data renaming 
 cdata <- base1
 
-#==================ADDING VARIABLES==================#
+#===================ADDING VARIABLES===================#
 #Add Dummy Variable for FF12 
 
 
@@ -50,39 +50,43 @@ cdata1 <- cdata%>%arrange(cid, fyear)%>%mutate(gpm = (sale-cogs) / sale)%>%ungro
 cdata2 <- cdata1%>%arrange(cid, fyear)%>%group_by(cid)%>%mutate(dltt_lag = lag(dltt, n = 1)) 
 cdata3 <- cdata2%>%mutate(dltt_change = dltt - dltt_lag)%>%mutate(dltt_dummy = ifelse(dltt_change > 0, 0, 1))
 
-#=============REMOVING UNNECESSARY COLUMNS===========#
+#=============REMOVING UNNECESSARY COLUMNS=============#
 final_data <- select(cdata3, c(datadate, cid, fyear, fyr, mob, sale, cogs, gpm, dltt_dummy, n_aef, ghg))
 df <- data.frame(final_data)
 
-#!====================HYPOTHESIS #1=================!#
-#====================REGRESSION MODEL================#
+#!====================HYPOTHESIS #1===================!#
+#====================REGRESSION MODEL==================#
 logistic_model <- glm(mob ~ gpm, data = df, family = "binomial")
 logistic_model
 
 summary(logistic_model)
 
-#!====================HYPOTHESIS #2=================!#
-#====================REGRESSION MODEL================#
+#!====================HYPOTHESIS #2===================!#
+#====================REGRESSION MODEL==================#
 #train test split of data 
 logistic_model <- glm(mob ~ n_aef, data = df, family = "binomial")
 logistic_model
 
 summary(logistic_model)
 
-#!=================HYPOTHESIS #3==============!#
-#================REGRESSION MODEL==============#
+#!======================HYPOTHESIS #3=================!#
+#=====================REGRESSION MODEL=================#
 #train test split of data 
 logistic_model <- glm(mob ~ dltt_dummy, data = df, family = "binomial")
 logistic_model
 
 summary(logistic_model)
 
-#!=================HYPOTHESIS #4==============!#
-#================REGRESSION MODEL==============#
+#!======================HYPOTHESIS #4=================!#
+#=====================REGRESSION MODEL=================#
 logistic_model <- glm(mob ~ ghg, data = df, family = "binomial")
 logistic_model
 
 summary(logistic_model)
 
+#!=====================ENDOGENEITY====================!#
+#use better judgement to determine what "hidden" variables might affect dependent variables 
+#just run correlation plots to highlight endogeneity
 
-##==================SCRIPT END================##
+
+##=====================SCRIPT END=====================##
