@@ -41,10 +41,19 @@ cdata <- base1
 
 #===================ADDING VARIABLES===================#
 #Add Dummy Variable for FF12 
-
+install.packages("caret")
+library(caret) 
+unique(base$FFI12_desc)
+base_list <- dummyVars(" ~ FFI12_desc ", data = cdata) 
+View(base_list )
+cdata_dummy <- data.frame(predict(base_list, cdata))
+View(cdata_dummy)
+base_final <- bind_cols(cdata, cdata_dummy)
+View(base_final)
+summary(base_final)
 
 #Add gross profit margin column
-cdata1 <- cdata%>%arrange(cid, fyear)%>%mutate(gpm = (sale-cogs) / sale)%>%ungroup() 
+cdata1 <- base_final%>%arrange(cid, fyear)%>%mutate(gpm = (sale-cogs) / sale)%>%ungroup() 
 
 #Add long-term debt column 
 cdata2 <- cdata1%>%arrange(cid, fyear)%>%group_by(cid)%>%mutate(dltt_lag = lag(dltt, n = 1)) 
@@ -53,6 +62,48 @@ cdata3 <- cdata2%>%mutate(dltt_change = dltt - dltt_lag)%>%mutate(dltt_dummy = i
 #=============REMOVING UNNECESSARY COLUMNS=============#
 final_data <- select(cdata3, c(datadate, cid, fyear, fyr, mob, sale, cogs, gpm, dltt_dummy, n_aef, ghg))
 df <- data.frame(final_data)
+
+#===================Checking for skewness and Log()===================#
+#Checking x-variables (GPM)
+summary(df$gpm)
+plot(density(df$gpm)) 
+#GPM graph quite left skewed; median higher than mean
+# Filter out rows with negative values of gpm becus cannot do becus got negative gpm
+df <- df[df$gpm >= 0, ]
+gpm_logged <- df %>% mutate(log_gpm = log(1+gpm))
+summary(gpm_logged$log_gpm)
+plot(density(gpm_logged$log_gpm))
+
+#Checking x-variables (dltt_dummy)
+summary(gpm_logged$dltt_dummy)
+#need to remove NAs to see graph
+selected_rows <- gpm_logged[!is.na(gpm_logged$dltt_dummy), ] 
+summary(selected_rows$dltt_dummy)
+plot(density(selected_rows$dltt_dummy)) 
+#dltt_dummy graph quite unique; #got a bimodal graph; two humps 
+
+#Checking x-variables (n_aef)
+summary(selected_rows$n_aef)
+plot(density(selected_rows$n_aef)) 
+#n_aef graph quite right skewed; mean higher than median
+n_aef_logged <- selected_rows %>% mutate(log_n_aef = log(1+n_aef))
+summary(n_aef_logged$log_n_aef)
+plot(density(n_aef_logged$log_n_aef))
+
+#Checking x-variables (ghg)
+summary(n_aef_logged$ghg)
+plot(density(n_aef_logged$ghg)) 
+#ghg graph quite right skewed; mean higher than median
+ghg_logged <- n_aef_logged %>% mutate(log_ghg = log(1+ghg))
+summary(ghg_logged$log_ghg)
+plot(density(ghg_logged$log_ghg))
+
+#Checking y-variables (mob)
+summary(ghg_logged$mob)
+plot(density(ghg_logged$mob)) 
+#mob graph quite unique; #got a bimodal graph; two humps 
+#same as dltt_dummy when these kind of bimodal graph with two humps even with log function -> 
+#it will still have similar graph pattern so doesnt matter log or not 
 
 #!====================HYPOTHESIS #1===================!#
 #====================REGRESSION MODEL==================#
