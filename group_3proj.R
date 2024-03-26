@@ -146,6 +146,25 @@ summary(logistic_model)
 #!=====================ENDOGENEITY====================!#
 #use better judgement to determine what "hidden" variables might affect dependent variables 
 #just run correlation plots to highlight endogeneity
+df1 <- data.frame(cdata3)
+numeric_cols <- sapply(df1, is.numeric)
+View(numeric_cols)
+exclude_cols <- c("datadate", "fyear", "fyr", "FFI12_desc")
+numeric_df <- df1[, numeric_cols]
+correlation_matrix <- cor(numeric_df)
+corrplot(cor(numeric_df))
+# INST_OWN, big4, ghg, gdwl,intan
 
+#!=====================MULTICOLLINEARITY====================!#
+library(car)
+install.packages("stargazer")
+library(stargazer)
+model1<- lm(mob ~ gc+ cid+ rdq+ icw+ gpm+ ppent+ txdb+ txp+ capx, data = df1)
+vif_values1 <- vif(model1)
+vif_values1 <- car::vif(model1)
+model2 <- lm(mob ~ n_aef+ dvc+ dp+ restate+ ni+ ib+ intano+ oancf+ dlc+ ceq+ cogs+ che+ dltt+ oiadp+ re+ at+ lt+ invt+ lct+ rect+ sale, data = df1)
+vif_values2 <- vif(model2)
+vif_values2 <- car::vif(model2)
+stargazer(vif_values1, vif_values2, type="text",title="Multicollinearity results",omit = c("Constant"), digits=2,  no.space = TRUE)
 
 ##=====================SCRIPT END=====================##
