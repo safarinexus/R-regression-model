@@ -60,7 +60,7 @@ cdata2 <- cdata1%>%arrange(cid, fyear)%>%group_by(cid)%>%mutate(dltt_lag = lag(d
 cdata3 <- cdata2%>%mutate(dltt_change = dltt - dltt_lag)%>%mutate(dltt_dummy = ifelse(dltt_change > 0, 0, 1))
 
 #=============REMOVING UNNECESSARY COLUMNS=============#
-final_data <- select(cdata3, c(datadate, cid, fyear, fyr, mob, sale, cogs, gpm, dltt_dummy, n_aef, ghg))
+final_data <- select(cdata3, c(datadate, cid, fyear, fyr, mob, sale, cogs, gpm, dltt_dummy, INST_OWN, n_aef, ghg))
 df <- data.frame(final_data)
 
 #===================Checking for skewness and Log()===================#
@@ -98,9 +98,17 @@ ghg_logged <- n_aef_logged %>% mutate(log_ghg = log(1+ghg))
 summary(ghg_logged$log_ghg)
 plot(density(ghg_logged$log_ghg))
 
+#Checking x-variables (INST_OWN)
+summary(ghg_logged$INST_OWN)
+plot(density(ghg_logged$INST_OWN)) 
+#INST_OWN graph quite right skewed; mean higher than median
+INST_OWN_logged <- ghg_logged %>% mutate(log_INST_OWN = log(1+INST_OWN))
+summary(INST_OWN_logged$log_INST_OWN)
+plot(density(INST_OWN_logged$log_INST_OWN))
+
 #Checking y-variables (mob)
-summary(ghg_logged$mob)
-plot(density(ghg_logged$mob)) 
+summary(INST_OWN_logged$mob)
+plot(density(INST_OWN_logged$mob)) 
 #mob graph quite unique; #got a bimodal graph; two humps 
 #same as dltt_dummy when these kind of bimodal graph with two humps even with log function -> 
 #it will still have similar graph pattern so doesnt matter log or not 
