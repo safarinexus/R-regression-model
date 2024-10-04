@@ -1,4 +1,4 @@
-# R_regression_model
+#R-regression-model
 ACCT337 Statistical Programming (R) Group Project  
   
 By Group 3  
